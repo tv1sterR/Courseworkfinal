@@ -1,0 +1,4 @@
+ddr3 8 1000 Yes 10
+ddr4 12 3000 Yes 30
+ddr4 16 4000 Yes 50
+ddr5 32 6000 Yes 60
