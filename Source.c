@@ -7,7 +7,9 @@
 
 typedef struct {
     char type[20];           // Тип памяти (DDR4)
-    int volume, frequency, latency;  // Объём памяти в ГБ, Тактовая частота в МГц, Тайминги
+    int volume; // Объём памяти в ГБ
+    int frequency; // Тактовая частота в МГц
+    int latency; // Тайминги
     char radiator[5];        // Наличие радиатора ("Yes" или "No")
 } MemoryRecord;
 
@@ -19,6 +21,7 @@ void saveToFile(const MemoryRecord* records, int recordCount);
 int loadFromFile(MemoryRecord* records, int* recordCount, const char* filename);
 int editRecord(MemoryRecord* records, int recordCount, int index);
 int addMultipleRecords(MemoryRecord* records, int* recordCount, int n);
+int deleteRecord(MemoryRecord* records, int* recordCount, int index);
 
 int main() {
     setlocale(LC_CTYPE, "RUS");
@@ -36,6 +39,7 @@ int main() {
         printf("6. Загрузить данные из файла\n");
         printf("7. Изменить запись\n");
         printf("8. Добавить несколько записей\n");
+        printf("9. Удалить запись\n");
         printf("0. Выход\n");
         printf("Выберите опцию: ");
         scanf("%d", &choice);
@@ -94,6 +98,23 @@ int main() {
             }
             break;
         }
+        case 9: {
+            if (recordCount == 0) {
+                printf("Нет записей для удаления.\n");
+                break;
+            }
+            printRecords(records, recordCount);
+            printf("Введите номер записи для удаления: ");
+            int index;
+            scanf("%d", &index);
+            if (deleteRecord(records, &recordCount, index - 1) == 0) {
+                printf("Запись успешно удалена.\n");
+            }
+            else {
+                printf("Ошибка при удалении записи.\n");
+            }
+            break;
+        }
         case 0:
             printf("Выход из программы.\n");
             break;
@@ -130,12 +151,13 @@ int addRecord(MemoryRecord* records, int* recordCount) {
 void printRecords(const MemoryRecord* records, int recordCount) {
     if (recordCount == 0) {
         printf("База данных пуста.\n");
-        return;
+        return 0;
     }
     for (int i = 0; i < recordCount; i++) {
         printf("%d. Тип: %s, Объем: %d ГБ, Частота: %d МГц, Радиатор: %s, Тайминги: %d\n",
             i + 1, records[i].type, records[i].volume, records[i].frequency, records[i].radiator, records[i].latency);
     }
+    return recordCount;
 }
 
 int searchRecord(const MemoryRecord* records, int recordCount) {
@@ -189,7 +211,7 @@ int searchRecord(const MemoryRecord* records, int recordCount) {
 void sortRecords(MemoryRecord* records, int recordCount) {
     if (recordCount == 0) {
         printf("База данных пуста, сортировать нечего.\n");
-        return;
+        return -1;
     }
 
     int choice;
@@ -233,13 +255,14 @@ void sortRecords(MemoryRecord* records, int recordCount) {
         }
     }
     printf("Записи успешно отсортированы.\n");
+    return 0;
 }
 
 void saveToFile(const MemoryRecord* records, int recordCount) {
     FILE* file = fopen("RAM_records.txt", "w");
     if (file == NULL) {
         printf("Ошибка при открытии файла для записи!\n");
-        return;
+        return -1;
     }
 
     for (int i = 0; i < recordCount; i++) {
@@ -253,6 +276,7 @@ void saveToFile(const MemoryRecord* records, int recordCount) {
 
     fclose(file);
     printf("Данные успешно сохранены в файл 'RAM_records.txt'.\n");
+    return 0;
 }
 
 int loadFromFile(MemoryRecord* records, int* recordCount, const char* filename) {
@@ -317,4 +341,15 @@ int addMultipleRecords(MemoryRecord* records, int* recordCount, int n) {
         if (addRecord(records, recordCount) != 0) return -1;
     }
     return 0;
+}
+
+int deleteRecord(MemoryRecord* records, int* recordCount, int index) {
+    if (index < 0 || index >= *recordCount) return -1;  
+
+    for (int i = index; i < *recordCount - 1; i++) {
+        records[i] = records[i + 1];
+    }
+
+    (*recordCount)--;
+    return 0; 
 }
