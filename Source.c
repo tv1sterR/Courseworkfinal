@@ -46,20 +46,13 @@ int main() {
 
         switch (choice) {
         case 1:
-            if (addRecord(records, &recordCount) == 0) {
-                printf("Запись успешно добавлена.\n");
-            }
-            else {
-                printf("Ошибка: база данных переполнена.\n");
-            }
+            addRecord(records, &recordCount);
             break;
         case 2:
             printRecords(records, recordCount);
             break;
         case 3:
-            if (searchRecord(records, recordCount) == 0) {
-                printf("Поиск завершен. Записи не найдены.\n");
-            }
+            searchRecord(records, recordCount);
             break;
         case 4:
             sortRecords(records, recordCount);
@@ -68,36 +61,19 @@ int main() {
             saveToFile(records, recordCount);
             break;
         case 6:
-            if (loadFromFile(records, &recordCount, "RAM_records.txt") == 0) {
-                printf("Данные загружены успешно.\n");
-            }
+            loadFromFile(records, &recordCount, "RAM_records.txt");
             break;
         case 7: {
             printRecords(records, recordCount);
             printf("Введите номер записи для изменения: ");
             int index;
             scanf("%d", &index);
-            if (editRecord(records, recordCount, index - 1) == 0) {
-                printf("Запись успешно изменена.\n");
-            }
-            else {
-                printf("Ошибка при изменении записи.\n");
-            }
+            editRecord(records, recordCount, index - 1);
             break;
         }
-        case 8: {
-            printf("Сколько записей вы хотите добавить? ");
-            int n;
-            scanf("%d", &n);
-
-            if (addMultipleRecords(records, &recordCount, n) == 0) {
-                printf("Записи успешно добавлены.\n");
-            }
-            else {
-                printf("Ошибка: недостаточно места для добавления записей.\n");
-            }
+        case 8:
+            addMultipleRecords(records, &recordCount, 0);
             break;
-        }
         case 9: {
             if (recordCount == 0) {
                 printf("Нет записей для удаления.\n");
@@ -127,7 +103,10 @@ int main() {
 }
 
 int addRecord(MemoryRecord* records, int* recordCount) {
-    if (*recordCount >= MAX_RECORDS) return -1;
+    if (*recordCount >= MAX_RECORDS) {
+        printf("Ошибка: база данных переполнена.\n");
+        return -1;
+    }
 
     printf("Введите тип памяти: ");
     scanf("%s", records[*recordCount].type);
@@ -145,8 +124,10 @@ int addRecord(MemoryRecord* records, int* recordCount) {
     scanf("%d", &records[*recordCount].latency);
 
     (*recordCount)++;
+    printf("Запись успешно добавлена.\n");
     return 0;
 }
+
 
 void printRecords(const MemoryRecord* records, int recordCount) {
     if (recordCount == 0) {
@@ -204,6 +185,8 @@ int searchRecord(const MemoryRecord* records, int recordCount) {
 
     if (!found) {
         printf("Записи не найдены.\n");
+    } else {
+        printf("Поиск завершен.\n");
     }
     return found;
 }
@@ -308,13 +291,18 @@ int loadFromFile(MemoryRecord* records, int* recordCount, const char* filename) 
     }
     else {
         printf("Успешно загружено %d записей из файла %s.\n", count, filename);
+        printf("Данные загружены успешно.\n");
     }
-
     return count;
 }
 
 int editRecord(MemoryRecord* records, int recordCount, int index) {
-    if (index < 0 || index >= recordCount) return -1;
+    if (index < 0 || index >= recordCount) {
+        printf("Ошибка: Некорректный номер записи.\n");
+        return -1;
+    }
+
+    printf("Редактирование записи #%d:\n", index + 1);
 
     printf("Введите новый тип памяти: ");
     scanf("%s", records[index].type);
@@ -331,15 +319,28 @@ int editRecord(MemoryRecord* records, int recordCount, int index) {
     printf("Введите новые тайминги: ");
     scanf("%d", &records[index].latency);
 
+    printf("Запись успешно изменена.\n");
     return 0;
 }
 
 int addMultipleRecords(MemoryRecord* records, int* recordCount, int n) {
-    if (*recordCount + n > MAX_RECORDS) return -1;
+    printf("Сколько записей вы хотите добавить? ");
+    scanf("%d", &n);
+
+    if (*recordCount + n > MAX_RECORDS) {
+        printf("Ошибка: недостаточно места для добавления %d записей.\n", n);
+        return -1;
+    }
 
     for (int i = 0; i < n; i++) {
-        if (addRecord(records, recordCount) != 0) return -1;
+        printf("Добавление записи #%d из %d:\n", i + 1, n);
+        if (addRecord(records, recordCount) != 0) {
+            printf("Ошибка при добавлении записи #%d.\n", i + 1);
+            return -1;
+        }
     }
+
+    printf("Записи успешно добавлены.\n");
     return 0;
 }
 
